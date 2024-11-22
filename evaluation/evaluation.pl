@@ -21,11 +21,11 @@
 % It should be located in project_root(src)
 % and have a configuration option learner/1
 % declaring its name.
-:- configuration:learner(L)
-  ,use_module(src(L)).
+% :- configuration:learner(L)
+%   ,use_module(src(L)).
 
-:-use_module(lib(sampling/sampling)).
-:-use_module(lib(tp/tp)).
+:-use_module(sampling).
+% :-use_module(lib(tp/tp)).
 
 
 /** <module> Evaluation metrics for experiment results.

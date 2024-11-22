@@ -7,7 +7,7 @@
 :-use_module(src(auxiliaries)).
 :-use_module(src(mil_problem)).
 :-use_module(lib(term_utilities/term_utilities)).
-:-use_module(metagol_auxiliaries).
+% :-use_module(metagol_auxiliaries).
 :-use_module(metagol_configuration).
 
 

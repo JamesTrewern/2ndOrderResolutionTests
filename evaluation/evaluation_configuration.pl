@@ -30,11 +30,11 @@ convert_examples(Pos,Neg,Pos,_):-
 	(   \+ ground(Pos) ; \+ ground(Neg) )
 	,!
 	,fail.
-convert_examples(Pos,Neg,Pos,Neg_):-
-	configuration:learner(louise)
-	,!
-	,G = findall(E,member(:-E,Neg),Neg_)
-	,call(G).
+% convert_examples(Pos,Neg,Pos,Neg_):-
+% 	configuration:learner(louise)
+% 	,!
+% 	,G = findall(E,member(:-E,Neg),Neg_)
+% 	,call(G).
 convert_examples(Pos,Neg,Pos,Neg).
 
 
