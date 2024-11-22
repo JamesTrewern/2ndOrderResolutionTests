@@ -16,7 +16,6 @@
 
 */
 
-:- dynamic learner/2.
 % Allows experiment files to define their own, special metarules.
 :-multifile metarule/2
            ,metarule_constraints/2
