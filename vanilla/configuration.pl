@@ -175,6 +175,10 @@ projection_21_abduce metarule 'P(X,X):- Q(X)'.
 projection_12_abduce metarule 'P(X):- Q(X,X)'.
 precon_abduce metarule 'P(X,y):- Q(X), R(X,y)'.
 postcon_abduce metarule 'P(x,Y):- Q(x,Y), R(Y)'.
+tri_chain_1 metarule 'P(x,y):- Q(M,x,z), R(z,y)'.
+tri_chain_2 metarule 'P(x,y):- Q(x,z), R(M,z,y)'.
+tri_chain_3 metarule 'P(x,y):- Q(M,x,z), R(N,z,y)'.
+
 
 learner('metagol').
 

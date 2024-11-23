@@ -1,10 +1,32 @@
-:- assert(learner('Metagol',lib(metagol/metagol))).
-:- ['vanilla/load_headless'].
-:- assert(learning_predicate(metagol:learn/5)).
-:- use_module(evaluation/evaluation).
-% :- metagol:learn(ancestor/2).
 
-:-  evaluation:train_and_test(ancestor/2,0.5,H,acc,Accuracy),
+
+load_metagol:- 
+    assert(learner('Metagol',lib(metagol/metagol))),
+    ['vanilla/load_headless'],
+    assert(learning_predicate(metagol:learn/5)),
+    use_module(evaluation/evaluation).
+
+
+update_experiment_file(FilePath, ModuleName):-
+    retract(experiment_file(_,_)),
+    assert(experiment_file(FilePath,ModuleName)),
+    load_experiment_file:load_experiment_file(FilePath).
+
+
+load_robots:-
+    assert(experiment_file('robots/robots',robots)).
+
+
+robots_test:-  
+    assert(experiment_file(data('robots/robots.pl'),robots)),
+    load_metagol,
+    evaluation:train_and_test(move/2,0.01,H,acc,Accuracy),
     maplist(writeln,H),
     writeln('accuracy' : Accuracy).
     
+coloured_graph_test:-  
+    assert(experiment_file(data('coloured_graph/graph_no_noise.pl'),graph_no_noise)),
+    load_metagol,
+    evaluation:train_and_test(graph_no_noise/2,0.5,H,acc,Accuracy),
+    maplist(writeln,H),
+    writeln('accuracy' : Accuracy).

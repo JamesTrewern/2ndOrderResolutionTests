@@ -1,4 +1,6 @@
-:-module(robots, [background_knowledge/2
+:-module(robots, [
+		program_signature/3
+		,background_knowledge/2
 		 ,metarules/2
 		 ,positive_example/2
 		 ,negative_example/2
@@ -23,7 +25,7 @@
 		 ]).
 
 
-:-use_module(configuration).
+% :-use_module(configuration).
 :-use_module(src(auxiliaries)).
 :-use_module(render).
 :-use_module(world).
@@ -76,9 +78,31 @@ results in the console. You've been warned!
 % ========================================
 
 % Triadic metarules - allow higher-order moves to be used.
-configuration:tri_chain_1 metarule 'P(x,y):- Q(M,x,z), R(z,y)'.
-configuration:tri_chain_2 metarule 'P(x,y):- Q(x,z), R(M,z,y)'.
-configuration:tri_chain_3 metarule 'P(x,y):- Q(M,x,z), R(N,z,y)'.
+% configuration:tri_chain_1 metarule 'P(x,y):- Q(M,x,z), R(z,y)'.
+% configuration:tri_chain_2 metarule 'P(x,y):- Q(x,z), R(M,z,y)'.
+% configuration:tri_chain_3 metarule 'P(x,y):- Q(M,x,z), R(N,z,y)'.
+
+program_signature(move/2,[
+	move,
+	double_move, 
+	triple_move,
+	quadruple_move,
+	move_right,
+	move_left,
+	move_up, 
+	move_down, 
+	move_right_twice,
+	move_left_twice,
+	move_up_twice,
+	move_down_twice,
+	move_right_then_up,
+	move_right_then_down,
+	move_left_then_up,
+	move_left_then_down,
+	move_up_then_right,
+	move_up_then_left,
+	move_down_then_right,
+	move_down_then_left],[]).
 
 background_knowledge(move/2, [% Move primitives
 			      move_right/2
