@@ -20,7 +20,7 @@
 %       Limit should be a natural number, including 0, or the atom 'inf'
 %       representing positive infinity if a limit is not required.
 %
-depth_limits(0,2).
+depth_limits(0,3).
 
 
 %!	experiment_file(?Path,?Module) is semidet.
@@ -137,12 +137,12 @@ order_constraints(precon,[P,Q,R],_Fs,[P>Q,P>R],[]).
 order_constraints(postcon,[P,Q,R],_Fs,[P>Q,P>R],[]).
 order_constraints(switch,[P,Q,R],_Fs,[P>Q,P>R],[]).
 
-% order_constraints(tri_chain_1,[P,Q,R,M],_Fs,[P>Q,P>R,Q>M],[]).
-% order_constraints(tri_chain_2,[P,Q,R,M],_Fs,[P>Q,P>R,R>M],[]).
-% order_constraints(tri_chain_3,[P,Q,R,M,N],_Fs,[P>Q,P>R,Q>M,R>N],[]).
-order_constraints(tri_chain_1,_,_Fs,[],[]).
-order_constraints(tri_chain_2,_,_Fs,[],[]).
-order_constraints(tri_chain_3,_,_Fs,[],[]).
+order_constraints(tri_chain_1,[P,Q,R],_Fs,[P>Q,P>R],[]).
+order_constraints(tri_chain_2,[P,Q,R],_Fs,[P>Q,P>R],[]).
+order_constraints(tri_chain_3,[P,Q,R],_Fs,[P>Q,P>R],[]).
+% order_constraints(tri_chain_1,_,_Fs,[],[]).
+% order_constraints(tri_chain_2,_,_Fs,[],[]).
+% order_constraints(tri_chain_3,_,_Fs,[],[]).
 
 
 % Opens this configuration file and the current experiment file in the

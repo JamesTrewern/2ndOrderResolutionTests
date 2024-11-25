@@ -2,9 +2,9 @@
 			 ,float_interval/4
 			 ]).
 
-:-use_module(configuration).
+:-use_module('../vanilla/configuration').
 :-use_module(learning_curve_configuration).
-:-use_module(lib(evaluation/evaluation)).
+:-use_module('../evaluation/evaluation').
 :-use_module(lib(mathemancy/mathemancy)).
 :-use_module(src(auxiliaries)).
 

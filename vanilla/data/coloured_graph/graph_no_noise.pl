@@ -1,9 +1,9 @@
 :-module(graph_no_noise, [program_signature/3,background_knowledge/2,metarules/2,positive_example/2,negative_example/2,ancestor/2,blue_parent/2,parent/2,red_parent/2]).
 
-program_signature(graph_no_noise/2,[graph_no_noise/2,ancestor/2],[]).
+program_signature(graph_no_noise/2,[graph_no_noise,ancestor],[]).
 background_knowledge(graph_no_noise/2, [ancestor/2]).
 
-metarules(graph_no_noise/2,[identity,inverse,switch,swap]).
+metarules(graph_no_noise/2,[identity,switch,swap]).
 
 positive_example(graph_no_noise/2,graph_no_noise(a,b)).
 positive_example(graph_no_noise/2,graph_no_noise(a,c)).
