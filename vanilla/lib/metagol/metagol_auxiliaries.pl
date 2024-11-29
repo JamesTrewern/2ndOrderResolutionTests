@@ -8,8 +8,8 @@
                                % Experiment file auxiliaries
                               ,cleanup_experiment/0
                             %   ,experiment_data/5
-                              ,learning_target/1
-                              ,learning_targets/1
+                            %   ,learning_target/1
+                            %   ,learning_targets/1
                               ,load_experiment_file/0
                               ,edit_experiment_file/0
                               ]).
@@ -368,49 +368,49 @@ cleanup_experiment:-
 
 
 
-% %!	experiment_data(+Targets,-Positive,-Negative,-BK,-Metarules) is
-% %!	det.
-% %
-% %	Collect experiment file data for one or more learning Targets.
-% %
-% %	Targets is either a single predicate indicator, or a list of
-% %	predicate indicators of the predicates to be learned.
-% %
-% %	experiment_data/5 expects an experiment file to be loaded into
-% %	memory and will fail without warning otherwise.
-% %	initialise_experiment/0 should be called before it, and
-% %	cleanup_experiment/0 after it if cleanup is required between
-% %	experiments.
-% %
-% experiment_data(Ts,_,_,_,_):-
-% % A list of learning targets must be ground.
-% 	is_list(Ts)
-% 	,learning_targets(Ls)
-% 	,forall(member(T,Ts)
-% 	       ,(   \+ memberchk(T,Ls)
-% 		->  throw('Unknown learning target':T)
-% 		;   true
-% 		)
-% 	       )
-% 	,fail.
-% experiment_data(T,_,_,_,_):-
-% % A single learning target's predicate indicator must be ground.
-% 	\+ is_list(T)
-% 	,learning_targets(Ts)
-% 	,\+ memberchk(T,Ts)
-% 	,throw('Unknown learning target':T).
-% experiment_data(T,Pos,Neg,BK,MS):-
-% 	signed_examples(positive,experiment_file,T,Pos_)
-% 	,signed_examples(negative,experiment_file,T,Neg_)
-% 	,maplist(list_to_set,[Pos_,Neg_],[Pos,Neg])
-% 	,bk_or_metarules(background_knowledge,experiment_file,T,BK)
-% 	,bk_or_metarules(metarules,experiment_file,T,MS_)
-% 	,(   (MS_ == [all]
-% 	     ;	 memberchk(all,MS_)
-% 	     )
-% 	 ->  configuration_metarules(MS)
-% 	 ;   MS = MS_
-% 	 ).
+%!	experiment_data(+Targets,-Positive,-Negative,-BK,-Metarules) is
+%!	det.
+%
+%	Collect experiment file data for one or more learning Targets.
+%
+%	Targets is either a single predicate indicator, or a list of
+%	predicate indicators of the predicates to be learned.
+%
+%	experiment_data/5 expects an experiment file to be loaded into
+%	memory and will fail without warning otherwise.
+%	initialise_experiment/0 should be called before it, and
+%	cleanup_experiment/0 after it if cleanup is required between
+%	experiments.
+%
+experiment_data(Ts,_,_,_,_):-
+% A list of learning targets must be ground.
+	is_list(Ts)
+	,learning_targets(Ls)
+	,forall(member(T,Ts)
+	       ,(   \+ memberchk(T,Ls)
+		->  throw('Unknown learning target':T)
+		;   true
+		)
+	       )
+	,fail.
+experiment_data(T,_,_,_,_):-
+% A single learning target's predicate indicator must be ground.
+	\+ is_list(T)
+	,learning_targets(Ts)
+	,\+ memberchk(T,Ts)
+	,throw('Unknown learning target':T).
+experiment_data(T,Pos,Neg,BK,MS):-
+	signed_examples(positive,experiment_file,T,Pos_)
+	,signed_examples(negative,experiment_file,T,Neg_)
+	,maplist(list_to_set,[Pos_,Neg_],[Pos,Neg])
+	,bk_or_metarules(background_knowledge,experiment_file,T,BK)
+	,bk_or_metarules(metarules,experiment_file,T,MS_)
+	,(   (MS_ == [all]
+	     ;	 memberchk(all,MS_)
+	     )
+	 ->  configuration_metarules(MS)
+	 ;   MS = MS_
+	 ).
 
 
 %!	signed_examples(+Sign,+Module,+Targets,-Examples) is det.

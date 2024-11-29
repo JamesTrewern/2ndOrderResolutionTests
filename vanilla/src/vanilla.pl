@@ -337,8 +337,10 @@ prove(L,_K,_MS,_Ss,_Os,Subs,_Acc):-
 %	new_metasub/6.
 %
 clause(_Os,_L,_K,_MS,_Ss,Subs,_Acc,_Ls):-
-	\+ check_constraints(Subs)
-	,!
+	debug(fetch,'Checking constraints on metasubs: ~w', [Subs])
+        ,\+ check_constraints(Subs)
+	,debug(fetch,'Failed!', [])
+        ,!
 	,fail.
 clause([_BK,builtins,_Hypothesis,_Metarules],L,_K,_MS,_Ss,Subs,Subs,true):-
 	(   predicate_property(L,foreign)
@@ -395,11 +397,22 @@ known_metasub(L,MS,Subs,Ls):-
 %
 %	Get the encapsulated body literals of a Metasubstitution.
 %
+%	Allows for metasubstitutions in both known representations,
+%	depending on the setting of the configuration option
+%	metasubstitution_atoms/1.
+%
 applied_metasub(MS, Sub/_, H, B):-
         free_member(Sub/_Sub_U:-(H,B),MS)
 	,!.
 applied_metasub(MS, Sub/_, L, true):-
-	free_member(Sub/_Sub_U:-(L),MS).
+	free_member(Sub/_Sub_U:-(L),MS)
+	,!.
+applied_metasub(MS, Sub, H, B):-
+        free_member(Sub:-(H,B),MS)
+	,!.
+applied_metasub(MS, Sub, L, true):-
+	free_member(Sub:-(L),MS).
+
 
 
 %!	free_member(?Element,?List) is nondet.

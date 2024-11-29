@@ -179,7 +179,7 @@ start_logging(F/A):-
 	%initialize
 	init_log_dir
 	,init_plot_dir
-	,configuration:learner(L)
+	,user:learner(L,_)
 	,learning_curve_configuration:logging_directory(D)
 	,close_log(learning_curve)
 	,debug_timestamp(T)

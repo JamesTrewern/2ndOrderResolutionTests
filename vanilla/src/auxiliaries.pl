@@ -40,7 +40,7 @@
 	              % Timing auxiliaries
 	              ,timing/2
 		      ,timing/3
-			  ,experiment_data/5
+			  	,experiment_data/5
 				,learning_target/1
 				,learning_targets/1
 				,learning_query/5
@@ -1475,8 +1475,16 @@ variables_symbols(T,Vs):-
 %!	existential_vars(+Metarule, -Existential) is det.
 %
 %	Collect Existentially quantified variables from a Metarule.
+%	%
+%	Allows for metasubstitutions in both known representations,
+%	depending on the setting of the configuration option
+%	metasubstitution_atoms/1.
 %
 existential_vars(Sub_E/_Sub_U:-_M,Es):-
+	!
+	,configuration:encapsulation_predicate(E)
+	,Sub_E =.. [E,_Id|Es].
+existential_vars(Sub_E:-_M,Es):-
 	configuration:encapsulation_predicate(E)
 	,Sub_E =.. [E,_Id|Es].
 
@@ -1621,6 +1629,10 @@ pretty_metarule_id(Id,Id_):-
 %	Metarule may be an atomic Id of a metarule or a metarule clause.
 %	Id is either the atom Id, or the atomic ide of the metarule in
 %	the clause.
+%	%
+%	Allows for metasubstitutions in both known representations,
+%	depending on the setting of the configuration option
+%	metasubstitution_atoms/1.
 %
 %	@tbd this is going to be needed elsewhere. Maybe modify
 %	mil_problem's metarule_parts/5 so it actually works?
@@ -1629,6 +1641,10 @@ metarule_id(Id,Id):-
 	atom(Id)
 	,!.
 metarule_id(Sub_E/_Sub_U:-_M,Id):-
+	configuration:encapsulation_predicate(E)
+	,Sub_E =.. [E,Id|_]
+	,!.
+metarule_id(Sub_E:-_M,Id):-
 	configuration:encapsulation_predicate(E)
 	,Sub_E =.. [E,Id|_].
 
@@ -1935,7 +1951,6 @@ timing(G, T):-
 	,T is E - S.
 
 
-
 %!	timing(+Goal,+Limit,-Time) is det.
 %
 %	Call a Goal with a time Limit and report the Time it took.
@@ -1950,356 +1965,7 @@ timing(G, L, T):-
 	,E is cputime
 	,T is E - S.
 
-
-/** <module> Auxiliary predicates for Metagol.
-
-Predicates in this module support the implementation and usage of
-Metagol. They include predicates to examine an experiment file in the
-format utiliesed in Louise, the project from which these predicates were
-originally copied.
-
-*/
-
-
-% [sec_prob]
-% ================================================================================
-% MIL problem auxiliaries
-% ================================================================================
-% Predicates for inspecting and manipulating a MIL problem.
-
-
-%!	write_encapsulated_problem(+Target) is det.
-%
-%	Write an encapsulated MIL problem to the dynamic db.
-%
-%	The MIL problem for Target is obtained from the current
-%	experiment file.
-%
-write_encapsulated_problem(T):-
-	experiment_data(T,Pos,Neg,BK,MS)
-	,write_encapsulated_problem(Pos,Neg,BK,MS).
-
-
-
-
-% [sec_debug]
-% ================================================================================
-% Debugging auxiliaries
-% ================================================================================
-% Predicates to facilitate experiment debugging and data inspection.
-
-
-%!	list_encapsulated_problem(+Target) is det.
-%
-%	Pretty-print the encapsulation of a MIL problem.
-%
-%	Target is the symbol and arity of the target predicate in the
-%	encapsulated MIL problem to be listed.
-%
-list_encapsulated_problem(Ts):-
-	metagol_configuration:listing_limit(L)
-	,experiment_data(Ts,Pos,Neg,BK,MS)
-	,encapsulated_problem(Pos,Neg,BK,MS,[Pos_,Neg_,_BK_,MS_])
-	,format_underlined('Positive examples')
-	,print_limited(L,Pos_)
-	,nl
-	,format_underlined('Negative examples')
-	,print_limited(L,Neg_)
-	,nl
-	,format_underlined('Background knowledge')
-	,forall(member(P,BK)
-	       ,(encapsulated_bk([P],Ts,Ps)
-		,format('~w:~n',[P])
-		,print_limited(L,Ps)
-		,nl
-		)
-	       )
-	,nl
-	,expanded_metarules(MS,MS_)
-	,format_underlined('Metarules')
-	,print_metarules(expanded,MS_).
-
-
-%!	list_learning_results is det.
-%
-%	List results for all learning targets.
-%
-%	Prints to the console the results of training on each learning
-%	target defined in the current experiment file.
-%
-%	Learning targets are obtained with a call to learning_targets/1.
-%
-%	By default, each learning target is passed to learn/1.
-%	Alternatively, the user may declare a clause of the dynamic,
-%	multifile predicate learning_predicate/1 to select a different
-%	learning predicate.
-%
-%	Alternative learning predicates must be one of [learn_meta/1,
-%	learn_with_examples_invention/2 learn_metarules/1,
-%	learn_minimal/1]. learn/2 can also be specified, but it will
-%	have the same results as learn/1.
-%
-%	If a predicate with a symbol other than the above listed
-%	alternatives, or with arity other than 1 or 2 is specified, an
-%	informative error is raised.
-%
-%	@see learning_predicate/1, learning_targets/1
-%
-/*
-list_learning_results:-
-	configuration:learning_predicate(P)
-	,!
-	,list_learning_results(P).
-*/
-list_learning_results:-
-	list_learning_results(learn/1).
-
-%!	list_learning_results(+Learning_Predicate) is det.
-%
-%	Business end of list_learning_results/0.
-%
-%	Learning_Predicate is a predicate indicator, the symbol and
-%	arity of one of the learning predicates in Louise.
-%
-%	Clauses are selected according to Learning_Predicate. Known
-%	learning predicates with arity in [1,2] are called on all
-%	learning targets and the results output to console. Predicates
-%	with a symbol that is not one of the known learning predicates
-%	or an arity other than an integer in [1,2], raise an appropriate
-%	error.
-%
-list_learning_results(P/N):-
-	\+ memberchk(P,[learn
-		       ])
-	,format(atom(A),'Unknown learning predicate: ~w',[P/N])
-	,throw(A)
-	% Actually needed to raise this error if the next also applies.
-	,!.
-list_learning_results(P/N):-
-	\+ memberchk(N, [1,2])
-	,format(atom(A),'Learning predicate arity must be in [1,2]: got ~w',[P/N])
-	,throw(A).
-list_learning_results(P/1):-
-	!
-	,learning_targets(Ts)
-	,forall(member(T,Ts)
-	       ,(call(P,T)
-		,nl
-		)
-	       ).
-list_learning_results(P/2):-
-	learning_targets(Ts)
-	,forall(member(T,Ts)
-	       ,(call(P,T,Ps)
-		,print_clauses(Ps)
-		,nl
-		)
-	       ).
-
-
-
-%!	list_mil_problem(+Target) is det.
-%
-%	List the elements of a MIL problem.
-%
-%	Target is the symbol and arity of the target predicate in the
-%	MIL problem to be listed.
-%
-list_mil_problem(T):-
-	experiment_data(T,Pos,Neg,BK,MS)
-	,list_mil_problem(Pos,Neg,BK,MS)
-	,nl
-	,print_constraints(MS,metasub).
-
-
-%!	list_mil_problem(+Pos,+Neg,+BK,+MS) is det.
-%
-%	Business end of list_mil_problem/1, list_mil_problem_thelma/1.
-%
-list_mil_problem(Pos,Neg,BK,MS):-
-	metagol_configuration:listing_limit(L)
-	,format_underlined('Positive examples')
-	,print_limited(L,Pos)
-	,nl
-	,format_underlined('Negative examples')
-	,print_limited(L,Neg)
-	,nl
-	,format_underlined('Background knowledge')
-	,forall(member(P,BK)
-	       ,(program(P,experiment_file,Ps)
-		,format('~w:~n',[P])
-		,print_limited(L,Ps)
-		,format('~n',[])
-		)
-	       )
-	,format_underlined('Metarules')
-	,print_metarules(quantified,MS).
-
-
-%!	format_underlined(+Atom) is det.
-%
-%	Print an atom and underline it.
-%
-format_underlined(A):-
-	atom_underline(A,A_)
-	,format('~w~n',[A])
-	,format('~w~n',[A_]).
-
-
-%!	atom_underline(+Atom,-Underlined) is det.
-%
-%	Create an Underline for an Atom.
-%
-atom_underline(A,A_):-
-	atom_length(A, N)
-	,findall(-
-		,between(1,N,_)
-		,Ds)
-	,atomic_list_concat(Ds,A_).
-
-
-%!	print_limited(+Limit,+Clauses) is det.
-%
-%	Print a list of Clauses up to a Limit.
-%
-%	Helper for list_mil_problem/4 (and list_encapsulated_problem/4)
-%	to print clauses up to a limit, to avoid cluttering the screen
-%	with too much output, especially in the presence of large
-%	datasets with many examples and lots of extensional BK.
-%
-print_limited(L,Cs):-
-	length(Cs,N)
-	,G = member(C,Cs)
-	,forall(limit(L,G)
-	       ,print_clauses([C])
-	       )
-	,(   L < N
-	 ->  M is N - L
-	    ,format('% ... ~w more clauses.~n',[M])
-	 ;   true
-	 ).
-
-
-%!	print_constraints(+Metarules,+Constraints) is det.
-%
-%	Print out information about metarule and order constraints.
-%
-%	Constraints is one of [order, metasub], denoting whether
-%	information about order constraints or metasubstitution
-%	constraints (currently defined as clauses
-%	of metarule_constraints/2) will be printed.
-%
-print_constraints(MS,order):-
-	!
-	,format_underlined('Order constraints')
-	,forall(member(Id,MS)
-	       ,(metagol_configuration:order_constraints(Id,Ss,Fs,PS,CS)
-		,prettify_vars(Ss,predicate,Ss_)
-		,prettify_vars(Fs,variable,Fs_)
-		,print_or_debug(print,user_output,order_constraints(Id,Ss_,Fs_,PS,CS))
-		)
-	       ).
-print_constraints(_MS,metasub):-
-	predicate_property(configuration:metarule_constraints(_,_), number_of_clauses(N))
-	,(   N > 0
-	 ->  format_underlined('Metasubstitution constraints')
-	    ,listing(configuration:metarule_constraints)
-	 ;   true
-	 ).
-
-
-%!	prettify_vars(+Vars,+Type,-Pretty) is det.
-%
-%	Prettify order constraints variables for pretty-printing.
-%
-%	@tbd This is a generalisation of two sets of repeating lines of
-%	code in pretty_expanded_metarule/2. Perhaps consider replacing
-%	the repeating lines in that predicate, too?
-%
-prettify_vars(Vs,T,Ps):-
-	length(Vs,N)
-	,auxiliaries:numbered_symbols(N,Vs,T)
-	,findall('$VAR'(P)
-		,(nth1(I,Vs,P)
-		 ,nth1(I,Ps,'$VAR'(P))
-		 )
-		,Ps).
-
-
-
-%!	list_mil_problem_thelma(+Targets) is det.
-%
-%	List the elements of a MIL Problem for Thelma.
-%
-%	As list_mil_problem/1 but also prints out information about
-%	metarule constraints and order constraints.
-%
-%	@tbd Needs to be renamed or removed.
-%
-list_mil_problem_thelma(Ts):-
-	experiment_data(Ts,Pos,Neg,BK,MS)
-	,list_mil_problem(Pos,Neg,BK,MS)
-	,nl
-	,print_constraints(MS,order).
-
-
-
-%!	list_problem_statistics(+Target) is det.
-%
-%	List statistics of the MIL problem for Target.
-%
-%	Currently this only lists the numbers of positive and negative
-%	examples, background definitions and metarules in the initial
-%	MIL problem for Target (i.e. before any automatic modifications
-%	such as metarule extension).
-%
-list_problem_statistics(T):-
-	experiment_data(T,Pos,Neg,BK,MS)
-	,maplist(length,[Pos,Neg,BK,MS],[I,J,K,N])
-	,format('Positive examples:    ~w~n', [I])
-	,format('Negative examples:    ~w~n', [J])
-	,format('Background knowledge: ~w ~w~n', [K,BK])
-	,format('Metarules:            ~w ~w ~n', [N,MS]).
-
-
-
-
-% [sec_expr]
-% ================================================================================
-% Experiment file auxiliaries
-% ================================================================================
-% Auxiliaries for inspecting and manipulating experiment files.
-
-
-%!	cleanup_experiment is det.
-%
-%	Clean up after a learning session.
-%
-%	Currently this only removes clauses of m/n asserted to the
-%	dynamic database.
-%
-%	Remember to run initialise_experiment/0 after this one to
-%	re-load any necessary clauses.
-%
-cleanup_experiment:-
-	% Retract encapsulated examples, BK and metarule clauses.
-	forall(user:current_predicate(m,H)
-	      ,(user:retractall(H)
-	       % Clauses in program module are asserted
-	       % by predicates in program_reduction module
-	       ,program:retractall(H)
-	       )
-	      )
-	% Retract encapsulated clauses of predicates in BK closure.
-	,forall(user:current_predicate(p,H)
-	      ,(user:retractall(H)
-	       ,program:retractall(H)
-	       )
-	      )
-	% Remove tabling for all tabled predicates
-	,abolish_all_tables.
-
-
+%-------------------------------------------------------------------new stuff
 
 %!	experiment_data(+Targets,-Positive,-Negative,-BK,-Metarules) is
 %!	det.
@@ -2455,6 +2121,7 @@ configuration_metarules(MS):-
 		,clause(H, _B)
 		)
 	       ,MS).
+
 
 
 

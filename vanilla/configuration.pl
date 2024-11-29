@@ -3,14 +3,13 @@
                         ,fetch_clauses/1
                         ,invented_symbol_prefix/1
                         ,learner/2
-                        ,learner/1
                         ,metarule/2
                         ,metarule_constraints/2
                         ,metarule_formatting/1
+                        ,metasubstitution_atoms/1
 			,symbol_range/2
                         ,table_meta_interpreter/1
                         ,untable_meta_interpreter/1
-                        ,learning_predicate/1
 			,op(100,xfx,metarule)
                         ]).
 
@@ -18,15 +17,18 @@
 
 */
 
-
 :- reexport('../evaluation/evaluation_configuration').
 
+% Can be modified by louise predicates setup_negatives/3,
+% cleanup_negatives/3
+:- dynamic fetch_clauses/1, learner/2.
 
 % Allows experiment files to define their own, special metarules.
 :-multifile metarule/2
            ,metarule_constraints/2
            ,table_meta_interpreter/1
-           ,untable_meta_interpreter/1.
+           ,untable_meta_interpreter/1
+           ,metasubstitution_atoms/1.
 
 %!      encapsulation_predicate(+Symbol) is semidet.
 %
@@ -175,19 +177,21 @@ projection_21_abduce metarule 'P(X,X):- Q(X)'.
 projection_12_abduce metarule 'P(X):- Q(X,X)'.
 precon_abduce metarule 'P(X,y):- Q(X), R(X,y)'.
 postcon_abduce metarule 'P(x,Y):- Q(x,Y), R(Y)'.
-tri_chain_1 metarule 'P(x,y):- Q(M,x,z), R(z,y)'.
-tri_chain_2 metarule 'P(x,y):- Q(x,z), R(M,z,y)'.
-tri_chain_3 metarule 'P(x,y):- Q(M,x,z), R(N,z,y)'.
 
 
-learner('metagol').
-
-%!      learner(?Name,?Path) is semidet.
+%!      learner(?Module,?Path) is semidet.
 %
 %       The learning system to load at startup.
 %
-% learner('Metagol',lib(metagol/metagol)).
-%learner('Poker',lib(poker/poker)).
+%       Module is the module name of Prolog module where the learner is
+%       defined.
+%
+%       Path is a path to the Prolog source file where the named Module
+%       is defined.
+%
+% learner(metagol,lib(metagol/metagol)).
+%learner(poker,lib(poker/poker)).
+% learner(louise,lib(louise/louise)).
 
 
 %!	metarule_constraints(+Metasubstitution,+Goal) is nondet.
@@ -299,6 +303,48 @@ metarule_formatting(quantified).
 %metarule_formatting(expanded).
 
 
+%!      metasubstitution_atoms(?What) is semidet.
+%
+%       What variables to store in metasubstitution atoms.
+%
+%       What, is an atom that determines what variables to store in
+%       metasubstitution atoms, one of: [existential_and_universal,
+%       existential].
+%
+%       Metasubstitution atoms are the atomic represerntations of
+%       metasubstitutions in the internal representation of expanded
+%       metarules used by Vanilla. See metarules_parser.pl for a
+%       description of the representation.
+%
+%       This option determines whether only existentially quantified or
+%       both existentially and universally quantified variables are
+%       represented in metasubstitution atoms.
+%
+%       The main practical consideration that informs the choice of this
+%       option is the amount of memory required to store one or the
+%       other representation: "existential_and_universal" stores
+%       multiple metasubstitution atoms for each set of existentially
+%       quantified variable stitutions, while "existential" only stores
+%       one, therefore "existential" is much easier on the RAM. This
+%       tends to affect tabling more than anything else.
+%
+%       Conversely, some learners may require both existentially and
+%       universally quantified variables to be represented in
+%       metasubstitution atoms. That is the case in Metagol, where
+%       the substitutions of universally quantified variables are used
+%       to implement interval order constraints, but is not the case in
+%       Poker or Louise where such constraints are not needed.
+%
+%       Example settings:
+%
+%       ==
+%       metasubstitution_atoms(existential_and_universal).
+%       metasubstitution_atoms(existential).
+%       ==
+%
+:- dynamic metasubstitution_atoms/1.
+
+
 %!	symbol_range(?Type,?Symbols) is semidet.
 %
 %	A list of Symbols to pretty-print predicates or variables.
@@ -377,67 +423,6 @@ symbol_range(variable, ['X','Y','Z','U','V','W']).
 :- dynamic(untable_meta_interpreter/1).
 
 
-%!	learning_predicate(+Learning_Predicate) is semidet.
-%
-%	The Learning_Predicate to be used in list_learning_results/0.
-%
-%	Learning_Predicate is a predicate indicator, the symbol and
-%	arity of one of the following learning predicates defined in
-%       Louise:
-%       * learn/1
-%       * learn_meta/1
-%       * learn_metarules/1
-%       * learn_minimal/1
-%       * learn_with_examples_invention/2
-%       * thelma/1
-%
-%       The specified predicate will be used to list the learning
-%       results for all learning targets defined in an experiment file
-%       with a call to list_learning_results/0.
-%
-%	learning_predicate/1 is declared as multifile. To specify the
-%	learning predicate to be used with list_learning_results/0, add
-%	a clause of learning_predicate/1 to the relevant experiment
-%	file.
-%
-%	For example, the following clause:
-%	==
-%	configuration:learning_predicate(learn_meta/1).
-%	==
-%
-%	Will cause list_learning_results/0 to use learn_meta/1 for
-%	all predicates in the experiment file containing that clause.
-%
-%	learning_predicate/1 is declared dynamic. You do not have to
-%	specify a learning predicate for every experiment file.
-%	list_learning_results/0 will default to learn/1.
-%
-%	Note that learning_predicate/1 will not affect learning by
-%	calling learning predicates directly. That is, having added a
-%	clause of learning_predicate/1 like the one above to an
-%	experiment file you are free to then call learn/1 or any other
-%	learning predicate on any of the learning targets in that
-%	experiment file. Only the learning predicate used by
-%	list_learning_results/0 is affected by this option.
-%
-%	Finally, note that specifying any other predicate than the three
-%	learning predicates listed above as a learning_predicate will
-%	cause list_learning_results/0 to raise an error.
-%
-%	@see list_learning_results/0
-%
-%       @tbd learning_predicate/1 is also used in lib/evaluation to
-%       choose the learning predicate used to evaluate a learning
-%       result. Predicates in that library default to learn/1 when
-%       learning_predicate/1 is not defined.
-%
-:-dynamic learning_predicate/1.
-:-multifile learning_predicate/1.
-%learning_predicate(learn/1).
-%learning_predicate(learn_greedy/1).
-% etc.
-
-:-learner(N,P)
+:-user:learner(N,P)
   ,format('Loading ~w~n',[N])
   ,use_module(P).
-
