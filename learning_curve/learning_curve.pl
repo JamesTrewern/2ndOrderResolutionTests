@@ -7,6 +7,8 @@
 :-use_module('../evaluation/evaluation').
 :-use_module(lib(mathemancy/mathemancy)).
 :-use_module(src(auxiliaries)).
+:-use_module(library(clpfd), [transpose/2]).
+
 
 /** <module> Experiment script for learnign rate experiments.
 
@@ -296,7 +298,8 @@ learning_curve(T,M,K,Ss,Ms,SDs):-
 	,exrtact_values(Zipped_Rs, TimeAvgs,TimeSDs,TimeStdErrs,MetricAvgs,MetricSDs,MetricStdErrs)
 	,compile_rows_heading(Ss,TimeAvgs,TimeSDs,TimeStdErrs,MetricAvgs,MetricSDs,MetricStdErrs,Rows)
 	,T = Symbol/_Arity
-	,atomic_list_concat(['results/', Symbol, '.csv'], FileName)
+	,user:learner(L,_)
+	,atomic_list_concat(['results/', Symbol, L, '.csv'], FileName)
 	,csv_write_file(FileName, Rows).
 	
 	

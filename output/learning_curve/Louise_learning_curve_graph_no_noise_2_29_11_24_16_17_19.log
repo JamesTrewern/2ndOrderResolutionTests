@@ -1,8 +1,8 @@
 % Experiment parameters:
-% Target:  move/2
+% Target:  graph_no_noise/2
 % Metric:  Accuracy
 % Steps:   1
-% Samples: [0.1,0.2,0.3,0.4]
+% Samples: [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 % Time limit (sec): 300
 % 
 % Configuration options:
