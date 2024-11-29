@@ -5,19 +5,8 @@ experiment_config(K,Ss):-
     K = 1,
     Stride = 1,
     LB = 1,
-    UB = 9, 
+    UB = 4, 
     float_interval(LB,UB,Stride,Ss).
-    % Ss = [
-    %     0.1,
-    %     0.2,
-    %     0.3,
-    %     0.4,
-    %     0.5,
-    %     0.6,
-    %     0.7,
-    %     0.8,
-    %     0.9,
-    % ]
 
 load_louise:- 
     assert(learner('Louise',lib(louise/louise))),
@@ -30,18 +19,13 @@ robots_test:-
     assert(experiment_file(data('robots/robots.pl'),robots)),
     load_louise,
     experiment_config(K,Ss),
-    learning_curve:learning_curve(move/2,acc,K,Ss,_,_).
+    learning_curve:learning_curve(move/2,acc,K,Ss,louise).
 
 
-test_graph(K, TUP, Noise):-
+test_graph(Noise):-
     atomic_list_concat([graph, '_' ,Noise], LP),
-    atomic_list_concat(['data/coloured_graph/', LP], FilePath),
-    update_experiment_file(FilePath,LP),
-    T = LP/2,
-    test(T,K, TUP).
-
-graph_no_noise_test:-
-    assert(experiment_file(data('coloured_graph/graph_no_noise.pl'),graph_no_noise)),
+    atomic_list_concat(['coloured_graph/', LP], FilePath),
+    assert(experiment_file(data(FilePath),LP)),
     load_louise,
     experiment_config(K,Ss),
-    learning_curve:learning_curve(graph_no_noise/2,acc,K,Ss,_,_).
+    learning_curve:learning_curve(LP/2,acc,K,Ss,louise).

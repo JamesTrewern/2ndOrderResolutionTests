@@ -1,4 +1,4 @@
-:-module(learning_curve, [learning_curve/6
+:-module(learning_curve, [learning_curve/5
 			 ,float_interval/4
 			 ]).
 
@@ -289,7 +289,7 @@ compile_rows([],[],[],[],[],[],[],[]).
 %	SDs is a list of length equal to Samples storing the standard
 %	deviations of the reasults averaged in Means.
 %
-learning_curve(T,M,K,Ss,Ms,SDs):-
+learning_curve(T,M,K,Ss,Learner):-
 	start_logging(T)
 	,learning_curve_configuration:learning_curve_time_limit(L)
 	,log_experiment_setup(T,L,M,K,Ss)
@@ -298,8 +298,7 @@ learning_curve(T,M,K,Ss,Ms,SDs):-
 	,exrtact_values(Zipped_Rs, TimeAvgs,TimeSDs,TimeStdErrs,MetricAvgs,MetricSDs,MetricStdErrs)
 	,compile_rows_heading(Ss,TimeAvgs,TimeSDs,TimeStdErrs,MetricAvgs,MetricSDs,MetricStdErrs,Rows)
 	,T = Symbol/_Arity
-	,user:learner(L,_)
-	,atomic_list_concat(['results/', Symbol, L, '.csv'], FileName)
+	,atomic_list_concat(['results/', Learner, '_', Symbol, '.csv'], FileName)
 	,csv_write_file(FileName, Rows).
 	
 	
